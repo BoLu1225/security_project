@@ -1,11 +1,14 @@
 import sys
-timeout=float(sys.argv[2])
-with open(sys.argv[3])as file:
+src = sys.argv[1]
+dst = sys.argv[2]
+dport = int(sys.argv[3])
+timeout=float(sys.argv[4])
+with open(sys.argv[5])as file:
  pattern=bytes(map(lambda hex:int(hex,16),file.read().split()))
 
-if sys.argv[1]=="ip_specify":
+if sys.argv[6]=="ip_specify":
  ip_fields={}
- with open(sys.argv[4])as file:
+ with open(sys.argv[7])as file:
   for line in file:
    line=line.split()
    ip_fields[line[0]]=list(map(lambda hex:int(hex,16),line[1:]))
@@ -20,8 +23,6 @@ if sys.argv[1]=="ip_specify":
   for value in ip_fields[field]:
    total+=1
    from scapy.all import *
-   dst = "192.168.1.156"
-   dport = 5000
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout)
@@ -48,7 +49,7 @@ if sys.argv[1]=="ip_specify":
  print(results)
 
 
-elif sys.argv[1]=="ip_default":
+elif sys.argv[6]=="ip_default":
  ip_field_lengths={
  "version":4,
  "tos":8,
@@ -58,8 +59,8 @@ elif sys.argv[1]=="ip_default":
  }
 
  ip_field_randoms={
- "id":(int(sys.argv[4]),16),
- "frag":(int(sys.argv[5]),13),
+ "id":(int(sys.argv[7]),16),
+ "frag":(int(sys.argv[8]),13),
  }
 
  results=""
@@ -72,8 +73,6 @@ elif sys.argv[1]=="ip_default":
   for _ in range(ip_field_randoms[field][0]):
    total+=1
    from scapy.all import *
-   dst = "192.168.1.156"
-   dport = 5000
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout)
@@ -107,8 +106,6 @@ elif sys.argv[1]=="ip_default":
   for value in range(1<<ip_field_lengths[field]):
    total+=1
    from scapy.all import *
-   dst = "192.168.1.156"
-   dport = 5000
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout)
