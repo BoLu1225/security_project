@@ -54,6 +54,7 @@ if sys.argv[6]=="ip_specify":
 elif sys.argv[6]=="ip_default":
  ip_field_lengths={
  "version":4,
+ "ihl":4,
  "tos":8,
  "flags":3,
  "ttl":8,
@@ -61,8 +62,9 @@ elif sys.argv[6]=="ip_default":
  }
 
  ip_field_randoms={
- "id":(int(sys.argv[7]),16),
- "frag":(int(sys.argv[8]),13),
+ "len":(int(sys.argv[7]),16),
+ "id":(int(sys.argv[8]),16),
+ "frag":(int(sys.argv[9]),13),
  }
 
  results=""
