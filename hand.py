@@ -32,6 +32,7 @@ if sys.argv[6]=="ip_specify":
    fields={"dst":dst,field:value}
    RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout)
    if not RESPONSE:
+    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -41,6 +42,7 @@ if sys.argv[6]=="ip_specify":
    else:
     other+=1
    if not RESPONSE.ack or not RESPONSE.seq:
+    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
@@ -83,6 +85,7 @@ elif sys.argv[6]=="ip_default":
    fields={"dst":dst,field:random.getrandbits(ip_field_randoms[field][1])}
    RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout)
    if not RESPONSE:
+    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -92,6 +95,7 @@ elif sys.argv[6]=="ip_default":
    else:
     other+=1
    if not RESPONSE.ack or not RESPONSE.seq:
+    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
@@ -115,6 +119,7 @@ elif sys.argv[6]=="ip_default":
    fields={"dst":dst,field:value}
    RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout)
    if not RESPONSE:
+    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -124,6 +129,7 @@ elif sys.argv[6]=="ip_default":
    else:
     other+=1
    if not RESPONSE.ack or not RESPONSE.seq:
+    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
