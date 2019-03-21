@@ -1,3 +1,13 @@
+flag=False
+def routine():
+ global flag
+ input()
+ flag=True
+
+import threading
+thread=threading.Thread(target=routine)
+thread.start()
+
 import sys
 port=int(sys.argv[1])
 with open(sys.argv[2])as file:
@@ -7,10 +17,27 @@ import socket
 sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 sock.bind(("",port))
 sock.listen(1)
+sock.setblocking(False)
+valid=0
+invalid=0
 while True:
- conn,addr=sock.accept()
+ while True:
+  try:
+   conn,addr=sock.accept()
+   break
+  except:
+   if flag:
+    thread.join()
+    sock.close()
+    print("valid:\t\t%d\ninvalid:\t%d"%(valid,invalid))
+    sys.exit(0)
  received=conn.recv(len(pattern))
- response=bytes([0x00if received==pattern else 0xff])
+ if received==pattern:
+  valid+=1
+  response=bytes([0x00])
+ else:
+  invalid+=1
+  response=bytes([0xff])
  conn.send(response)
  try:
   while True:
