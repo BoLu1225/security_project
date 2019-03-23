@@ -446,7 +446,7 @@ elif sys.argv[6]=="ip_specify":
 
 #ip layer fuzzing with default tests
 elif sys.argv[6]=="ip_default":
- if len(sys.argv)!=10:
+ if len(sys.argv)!=11:
   die(argv_message)
 
  try:
