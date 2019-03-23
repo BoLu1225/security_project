@@ -40,7 +40,7 @@ def check_byte(file,byte):
   die(message)
  return x
 
-if len(sys.argv)<6:
+if len(sys.argv)<7:
  die(argv_message)
 
 #validate IP address string
@@ -86,7 +86,7 @@ except ValueError:
 
 #application layer fuzzing with user-specified tests
 if sys.argv[6]=="app_specify":
- if len(sys.argv)!=7:
+ if len(sys.argv)!=8:
   die(argv_message)
  patterns=[]
  try:
@@ -135,7 +135,7 @@ if sys.argv[6]=="app_specify":
 
 #application layer fuzzing with default tests
 elif sys.argv[6]=="app_default":
- if len(sys.argv)!=9:
+ if len(sys.argv)!=10:
   die(argv_message)
  num_message="%s is not a number of tests"%sys.argv[7]
  try:
@@ -199,7 +199,7 @@ elif sys.argv[6]=="app_default":
 
 #tcp layer fuzzing with user-specified tests
 elif sys.argv[6]=="tcp_specify":
- if len(sys.argv)!=8:
+ if len(sys.argv)!=9:
   die(argv_message)
 
  try:
@@ -275,7 +275,7 @@ elif sys.argv[6]=="tcp_specify":
 
 #tcp layer fuzzing with default tests
 elif sys.argv[6]=="tcp_default":
- if len(sys.argv)!=11:
+ if len(sys.argv)!=12:
   die(argv_message)
 
  try:
