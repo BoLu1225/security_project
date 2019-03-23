@@ -378,7 +378,7 @@ elif sys.argv[7]=="tcp_default":
 
 #ip layer fuzzing with user-specified tests
 elif sys.argv[7]=="ip_specify":
- if len(sys.argv)!=9:
+ if len(sys.argv)!=10:
   die(argv_message)
 
  try:
