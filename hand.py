@@ -266,7 +266,7 @@ elif sys.argv[7]=="tcp_specify":
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   fields={"dport":dport, "flags":'A', "seq":SYNACK.ack, "ack":SYNACK.seq + 1, field:value}
+   fields={"sport":sport, "dport":dport, "flags":'A', "seq":SYNACK.ack, "ack":SYNACK.seq + 1, field:value}
    ACK=TCP(**fields)
    RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
