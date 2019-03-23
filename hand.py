@@ -121,14 +121,14 @@ if sys.argv[7]=="app_specify":
    total+=1
    from scapy.all import *
    ip=IP(dst=dst)
-   SYN=TCP(dport=dport,flags='S')
+   SYN=TCP(sport=sport,dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
+   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -137,7 +137,7 @@ if sys.argv[7]=="app_specify":
     invalid+=1
    else:
     other+=1
-   RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
 
@@ -179,11 +179,11 @@ elif sys.argv[7]=="app_default":
    total+=1
    from scapy.all import *
    ip=IP(dst=dst)
-   SYN=TCP(dport=dport,flags='S')
+   SYN=TCP(sport=sport,dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
+   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    n=random.randint(lbound,ubound)
    pattern=[None]*n
    import random
@@ -192,7 +192,7 @@ elif sys.argv[7]=="app_default":
    pattern=bytes(pattern)
    RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -201,7 +201,7 @@ elif sys.argv[7]=="app_default":
     invalid+=1
    else:
     other+=1
-   RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
 
@@ -260,7 +260,7 @@ elif sys.argv[7]=="tcp_specify":
    total+=1
    from scapy.all import *
    ip=IP(dst=dst)
-   SYN=TCP(dport=dport,flags='S')
+   SYN=TCP(sport=sport,dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
@@ -268,7 +268,7 @@ elif sys.argv[7]=="tcp_specify":
    ACK=TCP(**fields)
    RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -277,7 +277,7 @@ elif sys.argv[7]=="tcp_specify":
     invalid+=1
    else:
     other+=1
-   RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
 
@@ -322,16 +322,16 @@ elif sys.argv[7]=="tcp_default":
    total+=1
    from scapy.all import *
    ip=IP(dst=dst)
-   SYN=TCP(dport=dport,flags='S')
+   SYN=TCP(sport=sport,dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
+   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    import random
    fields={"dst":dst,field:random.getrandbits(tcp_field_randoms[field][1])}
    RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -340,7 +340,7 @@ elif sys.argv[7]=="tcp_default":
     invalid+=1
    else:
     other+=1
-   RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
 
@@ -353,15 +353,15 @@ elif sys.argv[7]=="tcp_default":
    total+=1
    from scapy.all import *
    ip=IP(dst=dst)
-   SYN=TCP(dport=dport,flags='S')
+   SYN=TCP(sport=sport,dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
+   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    fields={"dst":dst,field:value}
    RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -370,7 +370,7 @@ elif sys.argv[7]=="tcp_default":
     invalid+=1
    else:
     other+=1
-   RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
 
@@ -431,15 +431,15 @@ elif sys.argv[7]=="ip_specify":
    total+=1
    from scapy.all import *
    ip=IP(dst=dst)
-   SYN=TCP(dport=dport,flags='S')
+   SYN=TCP(sport=sport,dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
+   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    fields={"dst":dst,field:value}
    RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -448,7 +448,7 @@ elif sys.argv[7]=="ip_specify":
     invalid+=1
    else:
     other+=1
-   RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
 
@@ -495,16 +495,16 @@ elif sys.argv[7]=="ip_default":
    total+=1
    from scapy.all import *
    ip=IP(dst=dst)
-   SYN=TCP(dport=dport,flags='S')
+   SYN=TCP(sport=sport,dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
+   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    import random
    fields={"dst":dst,field:random.getrandbits(ip_field_randoms[field][1])}
    RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -513,7 +513,7 @@ elif sys.argv[7]=="ip_default":
     invalid+=1
    else:
     other+=1
-   RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
 
@@ -526,15 +526,15 @@ elif sys.argv[7]=="ip_default":
    total+=1
    from scapy.all import *
    ip=IP(dst=dst)
-   SYN=TCP(dport=dport,flags='S')
+   SYN=TCP(sport=sport,dport=dport,flags='S')
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
+   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    fields={"dst":dst,field:value}
    RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
    load=RESPONSE[Raw].load
    if load==bytes([0x00]):
@@ -543,7 +543,7 @@ elif sys.argv[7]=="ip_default":
     invalid+=1
    else:
     other+=1
-   RESPONSE_ACK=TCP(dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
    send(ip/RESPONSE_ACK)
   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
 
