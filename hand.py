@@ -40,7 +40,7 @@ def check_byte(file,byte):
   die(message)
  return x
 
-if len(sys.argv)<7:
+if len(sys.argv)<8:
  die(argv_message)
 
 #validate IP address string
@@ -58,47 +58,57 @@ def check_ip(addr):
 
 src = sys.argv[1]
 check_ip(src)
-dst = sys.argv[2]
+
+#validate source port number
+message="%s is not a port number"%sys.argv[2]
+try:
+ sport = int(sys.argv[2])
+ if sport not in range(1<<16):
+  die(message)
+except ValueError:
+ die(message)
+
+dst = sys.argv[3]
 check_ip(dst)
 
-#validate port number
-message="%s is not a port number"%sys.argv[3]
+#validate destination port number
+message="%s is not a port number"%sys.argv[4]
 try:
- dport = int(sys.argv[3])
+ dport = int(sys.argv[4])
  if dport not in range(1<<16):
   die(message)
 except ValueError:
  die(message)
 
 #validate timeout string
-message="%s is not a valid timeout"%sys.argv[4]
+message="%s is not a valid timeout"%sys.argv[5]
 try:
- timeout=float(sys.argv[4])
+ timeout=float(sys.argv[5])
 except ValueError:
  die(message)
 
 #validate retry number
-retry="%s is not a number of times to retry"%sys.argv[5]
+retry="%s is not a number of times to retry"%sys.argv[6]
 try:
- retry = int(sys.argv[5])
+ retry = int(sys.argv[6])
 except ValueError:
  die(message)
 
 #application layer fuzzing with user-specified tests
-if sys.argv[6]=="app_specify":
- if len(sys.argv)!=8:
+if sys.argv[7]=="app_specify":
+ if len(sys.argv)!=9:
   die(argv_message)
  patterns=[]
  try:
-  with open(sys.argv[7])as file:
+  with open(sys.argv[8])as file:
    for line in file:
     strings=line.split()
     values=[None]*len(strings)
     for i in range(len(strings)):
-     values[i]=check_byte(sys.argv[7],strings[i])
+     values[i]=check_byte(sys.argv[8],strings[i])
     patterns.append(bytes(values))
  except IOError:
-  die(file_message%sys.argv[7])
+  die(file_message%sys.argv[8])
 
  results=""
 
@@ -134,29 +144,29 @@ if sys.argv[6]=="app_specify":
  print(results)
 
 #application layer fuzzing with default tests
-elif sys.argv[6]=="app_default":
- if len(sys.argv)!=10:
+elif sys.argv[7]=="app_default":
+ if len(sys.argv)!=11:
   die(argv_message)
- num_message="%s is not a number of tests"%sys.argv[7]
+ num_message="%s is not a number of tests"%sys.argv[8]
  try:
-  num=int(sys.argv[7])
+  num=int(sys.argv[8])
   if num<0:
    die(num_message)
  except ValueError:
   die(num_message)
  bound_message="%s is not a payload length"
  try:
-  lbound=int(sys.argv[8])
+  lbound=int(sys.argv[9])
   if lbound<0:
-   die(bound_message%sys.argv[8])
+   die(bound_message%sys.argv[9])
  except ValueError:
-  die(bound_message%sys.argv[8])
+  die(bound_message%sys.argv[9])
  try:
-  ubound=int(sys.argv[9])
+  ubound=int(sys.argv[10])
   if ubound<lbound:
    die("maximum payload length cannot be less than mininum payload length")
  except ValueError:
-  die(bound_message%sys.argv[9])
+  die(bound_message%sys.argv[10])
 
  results=""
 
@@ -198,19 +208,19 @@ elif sys.argv[6]=="app_default":
  print(results)
 
 #tcp layer fuzzing with user-specified tests
-elif sys.argv[6]=="tcp_specify":
- if len(sys.argv)!=9:
+elif sys.argv[7]=="tcp_specify":
+ if len(sys.argv)!=10:
   die(argv_message)
 
  try:
-  with open(sys.argv[7])as file:
+  with open(sys.argv[8])as file:
    strings=file.read().split()
    pattern=[None]*len(strings)
    for i in range(len(strings)):
-    pattern[i]=check_byte(sys.argv[7],strings[i])
+    pattern[i]=check_byte(sys.argv[8],strings[i])
    pattern=bytes(pattern)
  except IOError:
-  die(file_message%sys.argv[7])
+  die(file_message%sys.argv[8])
 
 
  check={
@@ -225,19 +235,19 @@ elif sys.argv[6]=="tcp_specify":
 
  tcp_fields={}
  try:
-  with open(sys.argv[8])as file:
+  with open(sys.argv[9])as file:
    for line in file:
     line=line.split()
     if line[0]not in check:
-     die("in %s: %s is not a tcp header field"%(sys.argv[8],line[0]))
+     die("in %s: %s is not a tcp header field"%(sys.argv[9],line[0]))
     if line[0]in tcp_fields:
-     die("in %s: multiple lines for field %s"%(sys.argv[8],line[0]))
+     die("in %s: multiple lines for field %s"%(sys.argv[9],line[0]))
     values=[None]*(len(line)-1)
     for i in range(len(line)-1):
-     values[i]=check_value(sys.argv[8],line[i+1],line[0],check[line[0]])
+     values[i]=check_value(sys.argv[9],line[i+1],line[0],check[line[0]])
     tcp_fields[line[0]]=values
  except IOError:
-  die(file_message%sys.argv[8])
+  die(file_message%sys.argv[9])
 
  results=""
 
@@ -274,19 +284,19 @@ elif sys.argv[6]=="tcp_specify":
  print(results)
 
 #tcp layer fuzzing with default tests
-elif sys.argv[6]=="tcp_default":
- if len(sys.argv)!=12:
+elif sys.argv[7]=="tcp_default":
+ if len(sys.argv)!=13:
   die(argv_message)
 
  try:
-  with open(sys.argv[7])as file:
+  with open(sys.argv[8])as file:
    strings=file.read().split()
    pattern=[None]*len(strings)
    for i in range(len(strings)):
-    pattern[i]=check_byte(sys.argv[7],strings[i])
+    pattern[i]=check_byte(sys.argv[8],strings[i])
    pattern=bytes(pattern)
  except IOError:
-  die(file_message%sys.argv[7])
+  die(file_message%sys.argv[8])
 
  tcp_field_lengths={
  "dataofs":4,
@@ -295,10 +305,10 @@ elif sys.argv[6]=="tcp_default":
  }
 
  tcp_field_randoms={
- "seq":(check_num(sys.argv[8]),32),
- "ack":(check_num(sys.argv[9]),32),
- "window":(check_num(sys.argv[10]),16),
- "urgptr":(check_num(sys.argv[11]),16),
+ "seq":(check_num(sys.argv[9]),32),
+ "ack":(check_num(sys.argv[10]),32),
+ "window":(check_num(sys.argv[11]),16),
+ "urgptr":(check_num(sys.argv[12]),16),
  }
 
  results=""
@@ -367,19 +377,19 @@ elif sys.argv[6]=="tcp_default":
  print(results)
 
 #ip layer fuzzing with user-specified tests
-elif sys.argv[6]=="ip_specify":
- if len(sys.argv)!=8:
+elif sys.argv[7]=="ip_specify":
+ if len(sys.argv)!=9:
   die(argv_message)
 
  try:
-  with open(sys.argv[7])as file:
+  with open(sys.argv[8])as file:
    strings=file.read().split()
    pattern=[None]*len(strings)
    for i in range(len(strings)):
-    pattern[i]=check_byte(sys.argv[7],strings[i])
+    pattern[i]=check_byte(sys.argv[8],strings[i])
    pattern=bytes(pattern)
  except IOError:
-  die(file_message%sys.argv[7])
+  die(file_message%sys.argv[8])
 
 
  check={
@@ -396,19 +406,19 @@ elif sys.argv[6]=="ip_specify":
 
  ip_fields={}
  try:
-  with open(sys.argv[8])as file:
+  with open(sys.argv[9])as file:
    for line in file:
     line=line.split()
     if line[0]not in check:
-     die("in %s: %s is not an ip header field"%(sys.argv[8],line[0]))
+     die("in %s: %s is not an ip header field"%(sys.argv[9],line[0]))
     if line[0]in ip_fields:
-     die("in %s: multiple lines for field %s"%(sys.argv[8],line[0]))
+     die("in %s: multiple lines for field %s"%(sys.argv[9],line[0]))
     values=[None]*(len(line)-1)
     for i in range(len(line)-1):
-     values[i]=check_value(sys.argv[8],line[i+1],line[0],check[line[0]])
+     values[i]=check_value(sys.argv[9],line[i+1],line[0],check[line[0]])
     ip_fields[line[0]]=values
  except IOError:
-  die(file_message%sys.argv[8])
+  die(file_message%sys.argv[9])
 
  results=""
 
@@ -445,19 +455,19 @@ elif sys.argv[6]=="ip_specify":
  print(results)
 
 #ip layer fuzzing with default tests
-elif sys.argv[6]=="ip_default":
- if len(sys.argv)!=11:
+elif sys.argv[7]=="ip_default":
+ if len(sys.argv)!=12:
   die(argv_message)
 
  try:
-  with open(sys.argv[7])as file:
+  with open(sys.argv[8])as file:
    strings=file.read().split()
    pattern=[None]*len(strings)
    for i in range(len(strings)):
-    pattern[i]=check_byte(sys.argv[7],strings[i])
+    pattern[i]=check_byte(sys.argv[8],strings[i])
    pattern=bytes(pattern)
  except IOError:
-  die(file_message%sys.argv[7])
+  die(file_message%sys.argv[8])
 
  ip_field_lengths={
  "version":4,
@@ -469,9 +479,9 @@ elif sys.argv[6]=="ip_default":
  }
 
  ip_field_randoms={
- "len":(check_num(sys.argv[8]),16),
- "id":(check_num(sys.argv[9]),16),
- "frag":(check_num(sys.argv[10]),13),
+ "len":(check_num(sys.argv[9]),16),
+ "id":(check_num(sys.argv[10]),16),
+ "frag":(check_num(sys.argv[11]),13),
  }
 
  results=""
@@ -540,4 +550,4 @@ elif sys.argv[6]=="ip_default":
  print(results)
 
 else:
- die("%s is not a test mode"%sys.argv[6])
+ die("%s is not a test mode"%sys.argv[7])
