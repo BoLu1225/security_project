@@ -69,27 +69,36 @@ try:
   die(message)
 except ValueError:
  die(message)
+
+#validate timeout string
 message="%s is not a valid timeout"%sys.argv[4]
 try:
  timeout=float(sys.argv[4])
 except ValueError:
  die(message)
 
+#validate retry number
+retry="%s is not a number of times to retry"%sys.argv[5]
+try:
+ retry = int(sys.argv[5])
+except ValueError:
+ die(message)
+
 #application layer fuzzing with user-specified tests
-if sys.argv[5]=="app_specify":
+if sys.argv[6]=="app_specify":
  if len(sys.argv)!=7:
   die(argv_message)
  patterns=[]
  try:
-  with open(sys.argv[6])as file:
+  with open(sys.argv[7])as file:
    for line in file:
     strings=line.split()
     values=[None]*len(strings)
     for i in range(len(strings)):
-     values[i]=check_byte(sys.argv[6],strings[i])
+     values[i]=check_byte(sys.argv[7],strings[i])
     patterns.append(bytes(values))
  except IOError:
-  die(file_message%sys.argv[6])
+  die(file_message%sys.argv[7])
 
  results=""
 
@@ -103,11 +112,11 @@ if sys.argv[5]=="app_specify":
    from scapy.all import *
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout)
+   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
    ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
-   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout)
+   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
@@ -125,29 +134,29 @@ if sys.argv[5]=="app_specify":
  print(results)
 
 #application layer fuzzing with default tests
-elif sys.argv[5]=="app_default":
+elif sys.argv[6]=="app_default":
  if len(sys.argv)!=9:
   die(argv_message)
- num_message="%s is not a number of tests"%sys.argv[6]
+ num_message="%s is not a number of tests"%sys.argv[7]
  try:
-  num=int(sys.argv[6])
+  num=int(sys.argv[7])
   if num<0:
    die(num_message)
  except ValueError:
   die(num_message)
  bound_message="%s is not a payload length"
  try:
-  lbound=int(sys.argv[7])
+  lbound=int(sys.argv[8])
   if lbound<0:
-   die(bound_message%sys.argv[7])
+   die(bound_message%sys.argv[8])
  except ValueError:
-  die(bound_message%sys.argv[7])
+  die(bound_message%sys.argv[8])
  try:
-  ubound=int(sys.argv[8])
+  ubound=int(sys.argv[9])
   if ubound<lbound:
    die("maximum payload length cannot be less than mininum payload length")
  except ValueError:
-  die(bound_message%sys.argv[8])
+  die(bound_message%sys.argv[9])
 
  results=""
 
@@ -161,7 +170,7 @@ elif sys.argv[5]=="app_default":
    from scapy.all import *
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout)
+   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
    ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
@@ -171,7 +180,7 @@ elif sys.argv[5]=="app_default":
    for i in range(n):
     pattern[i]=random.getrandbits(8)
    pattern=bytes(pattern)
-   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout)
+   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
@@ -189,19 +198,19 @@ elif sys.argv[5]=="app_default":
  print(results)
 
 #tcp layer fuzzing with user-specified tests
-elif sys.argv[5]=="tcp_specify":
+elif sys.argv[6]=="tcp_specify":
  if len(sys.argv)!=8:
   die(argv_message)
 
  try:
-  with open(sys.argv[6])as file:
+  with open(sys.argv[7])as file:
    strings=file.read().split()
    pattern=[None]*len(strings)
    for i in range(len(strings)):
-    pattern[i]=check_byte(sys.argv[6],strings[i])
+    pattern[i]=check_byte(sys.argv[7],strings[i])
    pattern=bytes(pattern)
  except IOError:
-  die(file_message%sys.argv[6])
+  die(file_message%sys.argv[7])
 
 
  check={
@@ -216,19 +225,19 @@ elif sys.argv[5]=="tcp_specify":
 
  tcp_fields={}
  try:
-  with open(sys.argv[7])as file:
+  with open(sys.argv[8])as file:
    for line in file:
     line=line.split()
     if line[0]not in check:
-     die("in %s: %s is not a tcp header field"%(sys.argv[7],line[0]))
+     die("in %s: %s is not a tcp header field"%(sys.argv[8],line[0]))
     if line[0]in tcp_fields:
-     die("in %s: multiple lines for field %s"%(sys.argv[7],line[0]))
+     die("in %s: multiple lines for field %s"%(sys.argv[8],line[0]))
     values=[None]*(len(line)-1)
     for i in range(len(line)-1):
-     values[i]=check_value(sys.argv[7],line[i+1],line[0],check[line[0]])
+     values[i]=check_value(sys.argv[8],line[i+1],line[0],check[line[0]])
     tcp_fields[line[0]]=values
  except IOError:
-  die(file_message%sys.argv[7])
+  die(file_message%sys.argv[8])
 
  results=""
 
@@ -242,12 +251,12 @@ elif sys.argv[5]=="tcp_specify":
    from scapy.all import *
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout)
+   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
    fields={"dport":dport, "flags":'A', "seq":SYNACK.ack, "ack":SYNACK.seq + 1, field:value}
    ACK=TCP(**fields)
-   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout)
+   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
@@ -265,19 +274,19 @@ elif sys.argv[5]=="tcp_specify":
  print(results)
 
 #tcp layer fuzzing with default tests
-elif sys.argv[5]=="tcp_default":
+elif sys.argv[6]=="tcp_default":
  if len(sys.argv)!=11:
   die(argv_message)
 
  try:
-  with open(sys.argv[6])as file:
+  with open(sys.argv[7])as file:
    strings=file.read().split()
    pattern=[None]*len(strings)
    for i in range(len(strings)):
-    pattern[i]=check_byte(sys.argv[6],strings[i])
+    pattern[i]=check_byte(sys.argv[7],strings[i])
    pattern=bytes(pattern)
  except IOError:
-  die(file_message%sys.argv[6])
+  die(file_message%sys.argv[7])
 
  tcp_field_lengths={
  "dataofs":4,
@@ -286,10 +295,10 @@ elif sys.argv[5]=="tcp_default":
  }
 
  tcp_field_randoms={
- "seq":(check_num(sys.argv[7]),32),
- "ack":(check_num(sys.argv[8]),32),
- "window":(check_num(sys.argv[9]),16),
- "urgptr":(check_num(sys.argv[10]),16),
+ "seq":(check_num(sys.argv[8]),32),
+ "ack":(check_num(sys.argv[9]),32),
+ "window":(check_num(sys.argv[10]),16),
+ "urgptr":(check_num(sys.argv[11]),16),
  }
 
  results=""
@@ -304,13 +313,13 @@ elif sys.argv[5]=="tcp_default":
    from scapy.all import *
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout)
+   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
    ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    import random
    fields={"dst":dst,field:random.getrandbits(tcp_field_randoms[field][1])}
-   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout)
+   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
@@ -335,12 +344,12 @@ elif sys.argv[5]=="tcp_default":
    from scapy.all import *
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout)
+   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
    ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    fields={"dst":dst,field:value}
-   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout)
+   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
@@ -358,19 +367,19 @@ elif sys.argv[5]=="tcp_default":
  print(results)
 
 #ip layer fuzzing with user-specified tests
-elif sys.argv[5]=="ip_specify":
+elif sys.argv[6]=="ip_specify":
  if len(sys.argv)!=8:
   die(argv_message)
 
  try:
-  with open(sys.argv[6])as file:
+  with open(sys.argv[7])as file:
    strings=file.read().split()
    pattern=[None]*len(strings)
    for i in range(len(strings)):
-    pattern[i]=check_byte(sys.argv[6],strings[i])
+    pattern[i]=check_byte(sys.argv[7],strings[i])
    pattern=bytes(pattern)
  except IOError:
-  die(file_message%sys.argv[6])
+  die(file_message%sys.argv[7])
 
 
  check={
@@ -387,19 +396,19 @@ elif sys.argv[5]=="ip_specify":
 
  ip_fields={}
  try:
-  with open(sys.argv[7])as file:
+  with open(sys.argv[8])as file:
    for line in file:
     line=line.split()
     if line[0]not in check:
-     die("in %s: %s is not an ip header field"%(sys.argv[7],line[0]))
+     die("in %s: %s is not an ip header field"%(sys.argv[8],line[0]))
     if line[0]in ip_fields:
-     die("in %s: multiple lines for field %s"%(sys.argv[7],line[0]))
+     die("in %s: multiple lines for field %s"%(sys.argv[8],line[0]))
     values=[None]*(len(line)-1)
     for i in range(len(line)-1):
-     values[i]=check_value(sys.argv[7],line[i+1],line[0],check[line[0]])
+     values[i]=check_value(sys.argv[8],line[i+1],line[0],check[line[0]])
     ip_fields[line[0]]=values
  except IOError:
-  die(file_message%sys.argv[7])
+  die(file_message%sys.argv[8])
 
  results=""
 
@@ -413,12 +422,12 @@ elif sys.argv[5]=="ip_specify":
    from scapy.all import *
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout)
+   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
    ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    fields={"dst":dst,field:value}
-   RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout)
+   RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
@@ -436,19 +445,19 @@ elif sys.argv[5]=="ip_specify":
  print(results)
 
 #ip layer fuzzing with default tests
-elif sys.argv[5]=="ip_default":
+elif sys.argv[6]=="ip_default":
  if len(sys.argv)!=10:
   die(argv_message)
 
  try:
-  with open(sys.argv[6])as file:
+  with open(sys.argv[7])as file:
    strings=file.read().split()
    pattern=[None]*len(strings)
    for i in range(len(strings)):
-    pattern[i]=check_byte(sys.argv[6],strings[i])
+    pattern[i]=check_byte(sys.argv[7],strings[i])
    pattern=bytes(pattern)
  except IOError:
-  die(file_message%sys.argv[6])
+  die(file_message%sys.argv[7])
 
  ip_field_lengths={
  "version":4,
@@ -460,9 +469,9 @@ elif sys.argv[5]=="ip_default":
  }
 
  ip_field_randoms={
- "len":(check_num(sys.argv[7]),16),
- "id":(check_num(sys.argv[8]),16),
- "frag":(check_num(sys.argv[9]),13),
+ "len":(check_num(sys.argv[8]),16),
+ "id":(check_num(sys.argv[9]),16),
+ "frag":(check_num(sys.argv[10]),13),
  }
 
  results=""
@@ -477,13 +486,13 @@ elif sys.argv[5]=="ip_default":
    from scapy.all import *
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout)
+   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
    ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    import random
    fields={"dst":dst,field:random.getrandbits(ip_field_randoms[field][1])}
-   RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout)
+   RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
@@ -508,12 +517,12 @@ elif sys.argv[5]=="ip_default":
    from scapy.all import *
    ip=IP(dst=dst)
    SYN=TCP(dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout)
+   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
    ACK=TCP(dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    fields={"dst":dst,field:value}
-   RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout)
+   RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
     continue
@@ -531,4 +540,4 @@ elif sys.argv[5]=="ip_default":
  print(results)
 
 else:
- die("%s is not a test mode"%sys.argv[5])
+ die("%s is not a test mode"%sys.argv[6])

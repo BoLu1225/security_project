@@ -71,7 +71,7 @@ while True:
   try:
    conn,addr=sock.accept()
    break
-  except OSError:
+  except socket.error:
    if flag:#input available means user wants to terminate server
     thread.join()
     sock.close()
