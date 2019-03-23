@@ -328,9 +328,9 @@ elif sys.argv[7]=="tcp_default":
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    import random
-   fields={"dst":dst,field:random.getrandbits(tcp_field_randoms[field][1])}
+   fields={"sport":sport, "dport":dport, "flags":'A', "seq":SYNACK.ack, "ack":SYNACK.seq + 1, field:random.getrandbits(tcp_field_randoms[field][1])}
+   ACK=TCP(**fields)
    RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
@@ -359,8 +359,8 @@ elif sys.argv[7]=="tcp_default":
    SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
-   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
-   fields={"dst":dst,field:value}
+   fields={"sport":sport, "dport":dport, "flags":'A', "seq":SYNACK.ack, "ack":SYNACK.seq + 1, field:value}
+   ACK=TCP(**fields)
    RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
