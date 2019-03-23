@@ -1,10 +1,13 @@
+#print error message and exit
 def die(message):
  print(message)
  sys.exit()
+
 import sys
 argv_message="incorrect number of arguments"
 file_message="cannot read file %s"
 
+#validate byte string and return parsed byte
 def check_byte(file,byte):
  message="in %s: %s is not a byte (8 bits)"%(file,byte)
  try:
@@ -18,6 +21,7 @@ def check_byte(file,byte):
 if len(sys.argv)!=3:
  die(argv_message)
 
+#set flag when input is available
 flag=False
 def routine():
  global flag
@@ -26,6 +30,7 @@ def routine():
 
 import sys
 
+#validate port number
 message="%s is not a port number"%sys.argv[1]
 try:
  port = int(sys.argv[1])
@@ -34,6 +39,7 @@ try:
 except ValueError:
  die(message)
 
+#read pattern from file
 try:
  with open(sys.argv[2])as file:
   strings=file.read().split()
@@ -65,12 +71,12 @@ while True:
   try:
    conn,addr=sock.accept()
    break
-  except:
-   if flag:
+  except OSError:
+   if flag:#input available means user wants to terminate server
     thread.join()
     sock.close()
     print("valid:\t\t%d\ninvalid:\t%d"%(valid,invalid))
-    sys.exit(0)
+    sys.exit()
  received=conn.recv(len(pattern))
  if received==pattern:
   valid+=1

@@ -1,9 +1,13 @@
+#print error message and exit
 def die(message):
  print(message)
  sys.exit()
+
 import sys
 argv_message="incorrect number of arguments"
 file_message="cannot read file %s"
+
+#validate number of tests string and return parsed number
 def check_num(num):
  message="%s is not a number of tests"%num
  try:
@@ -13,6 +17,8 @@ def check_num(num):
  except ValueError:
   die(message)
  return x
+
+#validate field value string and return parsed value
 def check_value(file,value,field,size):
  message="in %s: %s is not a value for field %s (%d bits)"%(file,value,field,size)
  try:
@@ -22,6 +28,8 @@ def check_value(file,value,field,size):
  if x not in range(1<<size):
   die(message)
  return x
+
+#validate byte string and return parsed byte
 def check_byte(file,byte):
  message="in %s: %s is not a byte (8 bits)"%(file,byte)
  try:
@@ -31,8 +39,11 @@ def check_byte(file,byte):
  if x not in range(1<<8):
   die(message)
  return x
+
 if len(sys.argv)<6:
  die(argv_message)
+
+#validate IP address string
 def check_ip(addr):
  message="%s is not an IP address"%addr
  addr=addr.split(".")
@@ -44,10 +55,13 @@ def check_ip(addr):
     die(message)
   except ValueError:
    die(message)
+
 src = sys.argv[1]
 check_ip(src)
 dst = sys.argv[2]
 check_ip(dst)
+
+#validate port number
 message="%s is not a port number"%sys.argv[3]
 try:
  dport = int(sys.argv[3])
@@ -61,6 +75,7 @@ try:
 except ValueError:
  die(message)
 
+#application layer fuzzing with user-specified tests
 if sys.argv[5]=="app_specify":
  if len(sys.argv)!=7:
   die(argv_message)
@@ -109,6 +124,7 @@ if sys.argv[5]=="app_specify":
 
  print(results)
 
+#application layer fuzzing with default tests
 elif sys.argv[5]=="app_default":
  if len(sys.argv)!=9:
   die(argv_message)
@@ -172,6 +188,7 @@ elif sys.argv[5]=="app_default":
 
  print(results)
 
+#tcp layer fuzzing with user-specified tests
 elif sys.argv[5]=="tcp_specify":
  if len(sys.argv)!=8:
   die(argv_message)
@@ -247,6 +264,7 @@ elif sys.argv[5]=="tcp_specify":
 
  print(results)
 
+#tcp layer fuzzing with default tests
 elif sys.argv[5]=="tcp_default":
  if len(sys.argv)!=11:
   die(argv_message)
@@ -339,6 +357,7 @@ elif sys.argv[5]=="tcp_default":
 
  print(results)
 
+#ip layer fuzzing with user-specified tests
 elif sys.argv[5]=="ip_specify":
  if len(sys.argv)!=8:
   die(argv_message)
@@ -416,6 +435,7 @@ elif sys.argv[5]=="ip_specify":
 
  print(results)
 
+#ip layer fuzzing with default tests
 elif sys.argv[5]=="ip_default":
  if len(sys.argv)!=10:
   die(argv_message)
