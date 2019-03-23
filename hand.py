@@ -43,8 +43,6 @@ def check_byte(file,byte):
 if len(sys.argv)<8:
  die(argv_message)
 
-empty_line_message="in %s: empty line"
-
 #validate IP address string
 def check_ip(addr):
  message="%s is not an IP address"%addr
@@ -241,7 +239,7 @@ elif sys.argv[7]=="tcp_specify":
    for line in file:
     line=line.split()
     if not line:
-     die(empty_line_message%sys.argv[9])
+     continue
     if line[0]not in check:
      die("in %s: %s is not a tcp header field"%(sys.argv[9],line[0]))
     if line[0]in tcp_fields:
@@ -414,7 +412,7 @@ elif sys.argv[7]=="ip_specify":
    for line in file:
     line=line.split()
     if not line:
-     die(empty_line_message%sys.argv[9])
+     continue
     if line[0]not in check:
      die("in %s: %s is not an ip header field"%(sys.argv[9],line[0]))
     if line[0]in ip_fields:
