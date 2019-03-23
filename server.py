@@ -78,7 +78,11 @@ while True:
     sock.close()
     print("valid:\t\t%d\ninvalid:\t%d"%(valid,invalid))
     sys.exit()
- received=conn.recv(len(pattern))
+ try:
+  received=conn.recv(len(pattern))
+ except OSError:
+  conn.close()
+  continue
  if received==pattern:
   valid+=1
   response=bytes([0x00])
