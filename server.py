@@ -39,16 +39,25 @@ try:
 except ValueError:
  die(message)
 
+#validate timeout
+message="%s is not a timeout"%sys.argv[2]
+try:
+ timeout = float(sys.argv[2])
+ if timeout<0:
+  die(message)
+except ValueError:
+ die(message)
+
 #read pattern from file
 try:
- with open(sys.argv[2])as file:
+ with open(sys.argv[3])as file:
   strings=file.read().split()
   pattern=[None]*len(strings)
   for i in range(len(strings)):
-   pattern[i]=check_byte(sys.argv[2],strings[i])
+   pattern[i]=check_byte(sys.argv[3],strings[i])
   pattern=bytes(pattern)
 except IOError:
- die(file_message%sys.argv[2])
+ die(file_message%sys.argv[3])
 
 import socket
 sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -78,23 +87,13 @@ while True:
     sock.close()
     print("valid:\t\t%d\ninvalid:\t%d"%(valid,invalid))
     sys.exit()
- conn.setblocking(False)
- received=bytes()
- while len(received)<len(pattern):
-  if flag:
-   conn.close()
-   thread.join()
-   sock.close()
-   print("valid:\t\t%d\ninvalid:\t%d"%(valid,invalid))
-   sys.exit()
-  try:
-   received+=conn.recv(len(pattern)-len(received))
-  except OSError:
-   break
- if len(received)<len(pattern):
+ conn.settimeout(timeout)
+ try:
+  received=conn.recv(len(pattern))
+ except OSError:
   conn.close()
+  invalid+=1
   continue
- conn.setblocking(True)
  if received==pattern:
   valid+=1
   response=bytes([0x00])
@@ -105,12 +104,6 @@ while True:
  conn.setblocking(False)
  try:
   while True:
-   if flag:
-    conn.close()
-    thread.join()
-    sock.close()
-    print("valid:\t\t%d\ninvalid:\t%d"%(valid,invalid))
-    sys.exit()
    conn.recv(1)
  except OSError:
   conn.close()

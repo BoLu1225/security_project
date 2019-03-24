@@ -80,10 +80,12 @@ try:
 except ValueError:
  die(message)
 
-#validate timeout string
-message="%s is not a valid timeout"%sys.argv[5]
+#validate timeout
+message="%s is not a timeout"%sys.argv[5]
 try:
  timeout=float(sys.argv[5])
+ if timeout<0:
+  die(message)
 except ValueError:
  die(message)
 
