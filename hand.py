@@ -105,6 +105,8 @@ if sys.argv[7]=="app_specify":
   with open(sys.argv[8])as file:
    for line in file:
     strings=line.split()
+    if len(strings)>(1<<16)-41:
+     die("pattern does not fit in a single packet")
     values=[None]*len(strings)
     for i in range(len(strings)):
      values[i]=check_byte(sys.argv[8],strings[i])
@@ -217,6 +219,8 @@ elif sys.argv[7]=="tcp_specify":
  try:
   with open(sys.argv[8])as file:
    strings=file.read().split()
+   if len(strings)>(1<<16)-41:
+    die("pattern does not fit in a single packet")
    pattern=[None]*len(strings)
    for i in range(len(strings)):
     pattern[i]=check_byte(sys.argv[8],strings[i])
@@ -235,55 +239,60 @@ elif sys.argv[7]=="tcp_specify":
  "urgptr":16
  }
 
- tcp_fields={}
+ tests=[]
  try:
   with open(sys.argv[9])as file:
    for line in file:
-    line=line.split()
-    if not line:
-     continue
-    if line[0]not in check:
-     die("in %s: %s is not a tcp header field"%(sys.argv[9],line[0]))
-    if line[0]in tcp_fields:
-     die("in %s: multiple lines for field %s"%(sys.argv[9],line[0]))
-    values=[None]*(len(line)-1)
-    for i in range(len(line)-1):
-     values[i]=check_value(sys.argv[9],line[i+1],line[0],check[line[0]])
-    tcp_fields[line[0]]=values
+    test={}
+    for blob in line.split():
+     try:
+      [field,value]=blob.split(":")
+     except ValueError:
+      die("in %s: %s is not a field:value pair"%(sys.argv[9],blob))
+     if field not in check:
+      die("in %s: %s is not a tcp header field"%(sys.argv[9],field))
+     if field in test:
+      die("in %s: multiple field:value pairs for field %s"%(sys.argv[9],field))
+     test[field]=check_value(sys.argv[9],value,field,check[field])
+    tests.append(test)
  except IOError:
   die(file_message%sys.argv[9])
 
  results=""
 
- for field in tcp_fields:
+ for test in tests:
   valid=0
   invalid=0
   other=0
   total=0
-  for value in tcp_fields[field]:
-   total+=1
-   from scapy.all import *
-   ip=IP(dst=dst)
-   SYN=TCP(sport=sport,dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
-   if not SYNACK or not SYNACK.ack or not SYNACK.seq:
-    continue
-   fields={"sport":sport, "dport":dport, "flags":'A', "seq":SYNACK.ack, "ack":SYNACK.seq + 1, field:value}
-   ACK=TCP(**fields)
-   RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
-   if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
-    continue
-   load=RESPONSE[Raw].load
-   if load==bytes([0x00]):
-    valid+=1
-   elif load==bytes([0xff]):
-    invalid+=1
-   else:
-    other+=1
-   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
-   send(ip/RESPONSE_ACK)
-  results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
+
+  total+=1
+  from scapy.all import *
+  ip=IP(dst=dst)
+  SYN=TCP(sport=sport,dport=dport,flags='S')
+  SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
+  if not SYNACK or not SYNACK.ack or not SYNACK.seq:
+   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(test,valid,invalid,other,total)
+   continue
+  fields={"sport":sport, "dport":dport, "flags":'A', "seq":SYNACK.ack, "ack":SYNACK.seq + 1}
+  for field in test:
+   fields[field]=test[field]
+  ACK=TCP(**fields)
+  RESPONSE=sr1(ip/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
+  if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
+   send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(test,valid,invalid,other,total)
+   continue
+  load=RESPONSE[Raw].load
+  if load==bytes([0x00]):
+   valid+=1
+  elif load==bytes([0xff]):
+   invalid+=1
+  else:
+   other+=1
+  RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+  send(ip/RESPONSE_ACK)
+  results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(test,valid,invalid,other,total)
 
  print(results)
 
@@ -295,6 +304,8 @@ elif sys.argv[7]=="tcp_default":
  try:
   with open(sys.argv[8])as file:
    strings=file.read().split()
+   if len(strings)>(1<<16)-41:
+    die("pattern does not fit in a single packet")
    pattern=[None]*len(strings)
    for i in range(len(strings)):
     pattern[i]=check_byte(sys.argv[8],strings[i])
@@ -388,6 +399,8 @@ elif sys.argv[7]=="ip_specify":
  try:
   with open(sys.argv[8])as file:
    strings=file.read().split()
+   if len(strings)>(1<<16)-41:
+    die("pattern does not fit in a single packet")
    pattern=[None]*len(strings)
    for i in range(len(strings)):
     pattern[i]=check_byte(sys.argv[8],strings[i])
@@ -408,55 +421,60 @@ elif sys.argv[7]=="ip_specify":
  "frag":13
  }
 
- ip_fields={}
+ tests=[]
  try:
   with open(sys.argv[9])as file:
    for line in file:
-    line=line.split()
-    if not line:
-     continue
-    if line[0]not in check:
-     die("in %s: %s is not an ip header field"%(sys.argv[9],line[0]))
-    if line[0]in ip_fields:
-     die("in %s: multiple lines for field %s"%(sys.argv[9],line[0]))
-    values=[None]*(len(line)-1)
-    for i in range(len(line)-1):
-     values[i]=check_value(sys.argv[9],line[i+1],line[0],check[line[0]])
-    ip_fields[line[0]]=values
+    test={}
+    for blob in line.split():
+     try:
+      [field,value]=blob.split(":")
+     except ValueError:
+      die("in %s: %s is not a field:value pair"%(sys.argv[9],blob))
+     if field not in check:
+      die("in %s: %s is not a tcp header field"%(sys.argv[9],field))
+     if field in test:
+      die("in %s: multiple field:value pairs for field %s"%(sys.argv[9],field))
+     test[field]=check_value(sys.argv[9],value,field,check[field])
+    tests.append(test)
  except IOError:
   die(file_message%sys.argv[9])
 
  results=""
 
- for field in ip_fields:
+ for test in tests:
   valid=0
   invalid=0
   other=0
   total=0
-  for value in ip_fields[field]:
-   total+=1
-   from scapy.all import *
-   ip=IP(dst=dst)
-   SYN=TCP(sport=sport,dport=dport,flags='S')
-   SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
-   if not SYNACK or not SYNACK.ack or not SYNACK.seq:
-    continue
-   ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
-   fields={"dst":dst,field:value}
-   RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
-   if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
-    send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
-    continue
-   load=RESPONSE[Raw].load
-   if load==bytes([0x00]):
-    valid+=1
-   elif load==bytes([0xff]):
-    invalid+=1
-   else:
-    other+=1
-   RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
-   send(ip/RESPONSE_ACK)
-  results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(field,valid,invalid,other,total)
+
+  total+=1
+  from scapy.all import *
+  ip=IP(dst=dst)
+  SYN=TCP(sport=sport,dport=dport,flags='S')
+  SYNACK=sr1(ip/SYN,timeout=timeout,retry=retry)
+  if not SYNACK or not SYNACK.ack or not SYNACK.seq:
+   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(test,valid,invalid,other,total)
+   continue
+  ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
+  fields={"src":src,"dst":dst}
+  for field in test:
+   fields[field]=test[field]
+  RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
+  if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
+   send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
+   results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(test,valid,invalid,other,total)
+   continue
+  load=RESPONSE[Raw].load
+  if load==bytes([0x00]):
+   valid+=1
+  elif load==bytes([0xff]):
+   invalid+=1
+  else:
+   other+=1
+  RESPONSE_ACK=TCP(sport=sport,dport=dport, flags='RA', seq=RESPONSE.ack, ack=RESPONSE.seq + len(load))
+  send(ip/RESPONSE_ACK)
+  results+="%s\n\tvalid:\t\t%d\n\tinvalid:\t%d\n\tother:\t\t%d\n\ttotal:\t\t%d\n\n"%(test,valid,invalid,other,total)
 
  print(results)
 
@@ -468,6 +486,8 @@ elif sys.argv[7]=="ip_default":
  try:
   with open(sys.argv[8])as file:
    strings=file.read().split()
+   if len(strings)>(1<<16)-41:
+    die("pattern does not fit in a single packet")
    pattern=[None]*len(strings)
    for i in range(len(strings)):
     pattern[i]=check_byte(sys.argv[8],strings[i])
@@ -507,7 +527,7 @@ elif sys.argv[7]=="ip_default":
     continue
    ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
    import random
-   fields={"dst":dst,field:random.getrandbits(ip_field_randoms[field][1])}
+   fields={"src":src,"dst":dst,field:random.getrandbits(ip_field_randoms[field][1])}
    RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
@@ -537,7 +557,7 @@ elif sys.argv[7]=="ip_default":
    if not SYNACK or not SYNACK.ack or not SYNACK.seq:
     continue
    ACK=TCP(sport=sport,dport=dport, flags='A', seq=SYNACK.ack, ack=SYNACK.seq + 1)
-   fields={"dst":dst,field:value}
+   fields={"src":src,"dst":dst,field:value}
    RESPONSE=sr1(IP(**fields)/ACK/Raw(load=pattern),timeout=timeout,retry=retry)
    if not RESPONSE or not RESPONSE.ack or not RESPONSE.seq or not RESPONSE.haslayer(Raw):
     send(ip/TCP(sport=sport,dport=dport, flags='RA', seq=SYNACK.ack, ack=SYNACK.seq + 1))
