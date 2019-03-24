@@ -59,6 +59,13 @@ try:
 except IOError:
  die(file_message%sys.argv[3])
 
+#maxmimum payload length = MTU (1500 bytes) - length of ip + tcp headers
+maxlen = 1460
+maxlen_message = "in %s: payload length exceeds 1460 bytes"
+
+if len(pattern)>maxlen:
+ die(maxlen_message%sys.argv[3])
+
 import socket
 sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
