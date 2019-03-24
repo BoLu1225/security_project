@@ -1,3 +1,7 @@
+#maxmimum payload length = MTU (1500 bytes) - length of ip + tcp headers
+maxlen = 1460
+maxlen_message = "in %s: payload length exceeds 1460 bytes"
+
 #print error message and exit
 def die(message):
  print(message)
@@ -105,8 +109,8 @@ if sys.argv[7]=="app_specify":
   with open(sys.argv[8])as file:
    for line in file:
     strings=line.split()
-    if len(strings)>(1<<16)-41:
-     die("pattern does not fit in a single packet")
+    if len(strings)>maxlen:
+     die(maxlen_message%sys.argv[8])
     values=[None]*len(strings)
     for i in range(len(strings)):
      values[i]=check_byte(sys.argv[8],strings[i])
@@ -219,8 +223,8 @@ elif sys.argv[7]=="tcp_specify":
  try:
   with open(sys.argv[8])as file:
    strings=file.read().split()
-   if len(strings)>(1<<16)-41:
-    die("pattern does not fit in a single packet")
+   if len(strings)>maxlen:
+    die(maxlen_message%sys.argv[8])
    pattern=[None]*len(strings)
    for i in range(len(strings)):
     pattern[i]=check_byte(sys.argv[8],strings[i])
@@ -304,8 +308,8 @@ elif sys.argv[7]=="tcp_default":
  try:
   with open(sys.argv[8])as file:
    strings=file.read().split()
-   if len(strings)>(1<<16)-41:
-    die("pattern does not fit in a single packet")
+   if len(strings)>maxlen:
+    die(maxlen_message%sys.argv[8])
    pattern=[None]*len(strings)
    for i in range(len(strings)):
     pattern[i]=check_byte(sys.argv[8],strings[i])
@@ -399,8 +403,8 @@ elif sys.argv[7]=="ip_specify":
  try:
   with open(sys.argv[8])as file:
    strings=file.read().split()
-   if len(strings)>(1<<16)-41:
-    die("pattern does not fit in a single packet")
+   if len(strings)>maxlen:
+    die(maxlen_message%sys.argv[8])
    pattern=[None]*len(strings)
    for i in range(len(strings)):
     pattern[i]=check_byte(sys.argv[8],strings[i])
@@ -486,8 +490,8 @@ elif sys.argv[7]=="ip_default":
  try:
   with open(sys.argv[8])as file:
    strings=file.read().split()
-   if len(strings)>(1<<16)-41:
-    die("pattern does not fit in a single packet")
+   if len(strings)>maxlen:
+    die(maxlen_message%sys.argv[8])
    pattern=[None]*len(strings)
    for i in range(len(strings)):
     pattern[i]=check_byte(sys.argv[8],strings[i])
