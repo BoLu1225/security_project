@@ -18,7 +18,7 @@ def check_byte(file,byte):
   die(message)
  return x
 
-if len(sys.argv)!=3:
+if len(sys.argv)!=4:
  die(argv_message)
 
 #set flag when input is available
