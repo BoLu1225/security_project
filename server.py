@@ -72,17 +72,29 @@ while True:
   try:
    conn,addr=sock.accept()
    break
-  except socket.error:
+  except OSError:
    if flag:#input available means user wants to terminate server
     thread.join()
     sock.close()
     print("valid:\t\t%d\ninvalid:\t%d"%(valid,invalid))
     sys.exit()
- try:
-  received=conn.recv(len(pattern))
- except OSError:
+ conn.setblocking(False)
+ received=bytes()
+ while len(received)<len(pattern):
+  if flag:
+   conn.close()
+   thread.join()
+   sock.close()
+   print("valid:\t\t%d\ninvalid:\t%d"%(valid,invalid))
+   sys.exit()
+  try:
+   received+=conn.recv(len(pattern)-len(received))
+  except OSError:
+   break
+ if len(received)<len(pattern):
   conn.close()
   continue
+ conn.setblocking(True)
  if received==pattern:
   valid+=1
   response=bytes([0x00])
@@ -90,9 +102,15 @@ while True:
   invalid+=1
   response=bytes([0xff])
  conn.send(response)
+ conn.setblocking(False)
  try:
   while True:
+   if flag:
+    conn.close()
+    thread.join()
+    sock.close()
+    print("valid:\t\t%d\ninvalid:\t%d"%(valid,invalid))
+    sys.exit()
    conn.recv(1)
- except:
-  pass
- conn.close()
+ except OSError:
+  conn.close()
