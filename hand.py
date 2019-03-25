@@ -163,14 +163,19 @@ elif sys.argv[7]=="app_default":
  except ValueError:
   die(num_message)
  bound_message="%s is not a payload length"
+ bound_maxlen_message="%s exceeds 1460 bytes"
  try:
   lbound=int(sys.argv[9])
+  if lbound>maxlen:
+   die(bound_maxlen_message%sys.argv[9])
   if lbound<0:
    die(bound_message%sys.argv[9])
  except ValueError:
   die(bound_message%sys.argv[9])
  try:
   ubound=int(sys.argv[10])
+  if ubound>maxlen:
+   die(bound_maxlen_message%sys.argv[10])
   if ubound<lbound:
    die("maximum payload length cannot be less than mininum payload length")
  except ValueError:
