@@ -21,11 +21,14 @@ def check_byte(file,byte):
 if len(sys.argv)!=4:
  die(argv_message)
 
-#set flag when input is available
+#set flag when EOF or input is available
 flag=False
 def routine():
  global flag
- input()
+ try:
+  input()
+ except EOFError:
+  pass
  flag=True
 
 import sys
